@@ -62,10 +62,10 @@ class DifferentialEvolution(_Optimizer):
     def __init__(self, fun, bounds, popsize=20, maxiter=5000, max_eval=10000, disp=False):
         super().__init__(fun, bounds, popsize, maxiter, max_eval, disp)
         self.max_eval = max_eval
-        if max_eval//popsize > maxiter:
+        if max_eval//popsize -1 > maxiter:
             self.maxiter = maxiter
         else:
-            self.maxiter = max_eval//popsize
+            self.maxiter = max_eval//popsize - 1
     
     def solve(self):
         """
@@ -73,7 +73,6 @@ class DifferentialEvolution(_Optimizer):
         """
         progress = []
         def cb(xk, convergence):
-            print(f"DE convergence {convergence}")
             progress.append(self.fun(xk))
 
         # initialize number of points = popsize
@@ -87,7 +86,7 @@ class DifferentialEvolution(_Optimizer):
         
         progress.append(np.min(np.apply_along_axis(self.fun, 1, pop)))
         
-        result = scipy_de(self.fun, self.bounds, popsize=1, maxiter = self.maxiter, mutation=0.75, disp=self.disp, callback=cb, init=pop)
+        result = scipy_de(self.fun, self.bounds, popsize=1, maxiter = self.maxiter, tol=0.0001, disp=self.disp, callback=cb, init=pop)
         self.x = result.x
         self.fx = result.fun
         f_calls = (np.arange(1,len(progress)+1)) * self.popsize
@@ -312,7 +311,7 @@ class ParticleSwarm(_Optimizer):
             if self.disp:
                 print(f"simulated annealing step {itr}: f(x)= {gbest_position}")
                 
-            if evals > self.max_eval:
+            if evals > self.max_eval - self.popsize:
                 break
             
         f_calls = np.arange(1, itr+1)*self.popsize
